@@ -1,3 +1,4 @@
+from typing import Tuple, List
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -9,25 +10,32 @@ class BasePage:
         self.driver: WebDriver = driver
         self.wait: WebDriverWait = WebDriverWait(driver, timeout)
 
-    def click_element(self, by: By, locator: str) -> WebElement:
-        element: WebElement = self.wait.until(EC.element_to_be_clickable((by, locator)))
-        element.click()
-        return element
+    def click(self, locator: Tuple[str, str]) -> None:
+        self.wait.until(EC.element_to_be_clickable(locator)).click()
 
-    def find_element(self, by: By, locator: str) -> WebElement:
-        return self.wait.until(EC.presence_of_element_located((by, locator)))
 
-    def find_elements(self, by: By, locator: str) -> list[WebElement]:
-        return self.wait.until(EC.presence_of_all_elements_located((by, locator)))
+    def type(self, locator: Tuple[str, str], text: str)-> None:
+        element: WebElement = self.wait.until(EC.visibility_of_element_located(locator))
+        element.clear()
+        element.send_keys(text)
 
-    def close_popup(self):
+    def get_text(self, locator: Tuple[str, str])-> str:
+        return self.wait.until(EC.visibility_of_element_located(locator)).text
+
+    def find_element(self, locator: Tuple[str, str]) -> WebElement:
+        return self.wait.until(EC.presence_of_element_located(locator))
+
+    def find_elements(self, locator: Tuple[str, str]) -> List[WebElement]:
+        return self.wait.until(EC.presence_of_all_elements_located(locator))
+
+    def close_popup(self) -> None: # Added -> None
         try:
-            self.click_element(By.XPATH, "//span[contains(@class, 'commonModal__close')]")
-            self.wait.until(EC.invisibility_of_element_located((By.CLASS_NAME, "commonModal__overlay")))
+            self.click((By.XPATH, "//span[contains(@class, 'commonModal__close')]"))
+            self.wait.until(
+                EC.invisibility_of_element_located(
+                    (By.CLASS_NAME, "commonModal__overlay")
+                )
+            )
             print("Popup Closed.")
-        except:
+        except Exception:
             print("No popup found or already closed")
-
-
-
-
